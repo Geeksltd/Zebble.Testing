@@ -112,7 +112,7 @@
       <Version>9.0.1</Version>
     </PackageReference>
     <PackageReference Include="Zebble">
-      <Version>4.5.369</Version>
+      <Version>4.5.370</Version>
     </PackageReference>
     <PackageReference Include="Zebble.Carousel">
       <Version>4.6.345</Version>

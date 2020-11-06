@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Zebble.Device;
 
 namespace Zebble.Testing
 {
-    public abstract class TestOrchestrator
+    public class TestEngine
     {
-        DateTime TestingTime = "2022/01/01 10:00:00".To<DateTime>();
-
-        public virtual void Run()
+        internal static void Run()
         {
-            LocalTime.RedefineNow(() => TestingTime);
-            MakeItFast();
+            TestContext.Activate();
 
             Thread.Pool.RunOnNewThread(async () =>
             {
@@ -20,7 +19,8 @@ namespace Zebble.Testing
                 {
                     try
                     {
-                        await test.Run();
+                        var testCase = Activator.CreateInstance(test) as UITest;
+                        await testCase.Run();
 
                         Log.Success($"Test \"{ test.GetType().Name }\" ran successfully");
                         await Task.Delay(1.Seconds());
@@ -37,13 +37,15 @@ namespace Zebble.Testing
             });
         }
 
-        public virtual void MakeItFast()
+        static IEnumerable<Type> GetTests()
         {
-            Animation.DefaultDuration = Animation.OneFrame;
-            Animation.DefaultListItemSlideDuration = Animation.OneFrame;
-            Animation.DefaultSwitchDuration = Animation.OneFrame;
-        }
+            var types = UIRuntime.GetEntryAssembly().GetTypes().Where(t => t.InhritsFrom(typeof(UITest)));
 
-        public abstract IEnumerable<UITest> GetTests();
+            if (types.Any(t => t.Defines<UnderDevelopment>())) return types.Where(t => t.Defines<UnderDevelopment>());
+            else return types;
+        }
     }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class UnderDevelopment : Attribute { }
 }

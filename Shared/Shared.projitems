@@ -16,7 +16,7 @@
     <None Include="$(MSBuildThisFileDirectory)NuGet\Icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)TestOrchestrator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestEngine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UITest.cs" />
   </ItemGroup>
 </Project>

@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Zebble;
 
 namespace Zebble.Testing
 {
@@ -26,6 +25,9 @@ namespace Zebble.Testing
 
         T TryToFind<T>(Func<T> action, string definition) where T : View
         {
+#if ANDROID
+            Delay(50);
+#endif
             AwaitNavigationCompletion();
 
             var attempts = 300;
@@ -43,13 +45,27 @@ namespace Zebble.Testing
                 attempts--;
             }
 
+            if (Debugger.IsAttached) Debugger.Break();
+
             throw new Exception("Not found: " + definition);
         }
 
-        protected void Assert(string condition, bool conditionTest)
+        protected void Assert(string condition, Func<bool> conditionTest)
         {
-            if (!conditionTest)
-                throw new Exception("Assertion failed: " + condition);
+            AwaitNavigationCompletion();
+
+            var attempts = 300;
+
+            while (attempts > 0)
+            {
+                if (conditionTest()) return;
+                Wait(Animation.OneFrame);
+                attempts--;
+            }
+
+            if (Debugger.IsAttached) Debugger.Break();
+
+            throw new Exception("Assertion failed: " + condition);
         }
 
         protected void Expect(string text, bool caseSensitive = false)
@@ -57,9 +73,20 @@ namespace Zebble.Testing
             TryToFind(() => AllVisible<TextControl>().FirstOrDefault(x => x.Text.Contains(text, caseSensitive)), text);
         }
 
-        protected void SwipeCarousel(Direction direction = Direction.Left)
+        protected void SwipeCarousel(Direction direction = Direction.Left, View thisCarousel = null)
         {
-            var carousel = Find<Zebble.Plugin.Carousel>();
+            var delay = 200;
+
+#if ANDROID
+            delay = 500;
+#endif
+
+            Delay(delay);
+
+            Plugin.Carousel carousel;
+            if (thisCarousel == null) carousel = Find<Plugin.Carousel>();
+            else carousel = thisCarousel as Plugin.Carousel;
+
             if (direction == Direction.Left) carousel.Next(animate: false);
             else if (direction == Direction.Right) carousel.Previous(animate: false);
         }
@@ -82,23 +109,53 @@ namespace Zebble.Testing
             Delay(delay);
         }
 
+        protected void Tap<T>(int delay = 100) where T : View
+        {
+            var item = TryToFind(() =>
+            {
+                var match = AllVisible<T>().ToArray();
+                if (match.None()) return null;
+                else if (match.IsSingle()) return match[0];
+                else return null;
+            }, "Not found the view of type " + nameof(T));
+
+            Tap(item, delay);
+        }
+
+        protected void TapExcept(string groupId, string text, int delay = 100)
+        {
+            var item = TryToFind(() =>
+            {
+                var match = AllVisible<TextView>().Where(x => x.Text != text && x.Id == groupId).ToArray();
+                if (match.None()) return null;
+                return match[0];
+            }, text);
+
+            Tap(item, delay);
+        }
+
         /// <summary>
-        /// Wait for Toast message
+        /// Wait for Toast or Alert message
         /// </summary>
         /// <param name="text">Expected message</param>
-        protected async Task WaitForPopup(string text)
+        protected async Task WaitForPopup(string text, bool isAlert = false, int attempts = 20)
         {
-            var attempts = 20;
-
             while (attempts > 0)
             {
-                if (View.Root.AllChildren<Toast>().Any(x => x.Message.Contains(text, false))) return;
+                if (isAlert)
+                {
+                    if (View.Root.AllChildren<AlertDialog>().Any(x => x.AllChildren<TextView>().Any(t => t.Text.Contains(text, false)))) return;
+                }
+                else
+                {
+                    if (View.Root.AllChildren<Toast>().Any(x => x.Message.Contains(text, false))) return;
+                }
 
                 await Task.Delay(50);
                 attempts--;
             }
 
-            throw new Exception("No Toast message containing the phrase '" + text + "' was found on the screen.");
+            throw new Exception("No Toast or Alert message containing the phrase '" + text + "' was found on the screen.");
         }
 
         TextView FindByText(string text)
@@ -123,6 +180,21 @@ namespace Zebble.Testing
                 if (match.IsSingle()) return match[0];
                 else return null;
             }, "Id not found: " + id);
+        }
+
+        protected T ById<T>(int position, string id = null) where T : View
+        {
+            return TryToFind(() =>
+            {
+                T[] match;
+
+                if (id == null) match = AllVisible<T>().ToArray();
+                else match = AllVisible<T>().Where(x => x.Id == id).ToArray();
+
+                if (match.None()) return null;
+                return match[position];
+
+            }, id != null ? "Id not found: " + id : "View not found: " + nameof(T));
         }
 
         static async void Visualize(View view)
@@ -175,12 +247,12 @@ namespace Zebble.Testing
         /// </summary>
         /// <param name="button">Button text or ID</param>
         /// <param name="caseSensitive">Case sensitive</param>
-        protected Task Touch(string button, bool caseSensitive = false)
+        protected Task Touch<TButton>(string button, bool caseSensitive = false) where TButton : Button
         {
             try
             {
                 var arg = new TouchEventArgs(View.Root, new Point(0, 0), 1);
-                AllVisible<Button>().First(x => x.Text.Contains(button, caseSensitive) || x.Id.Contains(button, caseSensitive)).RaiseTouched(arg);
+                AllVisible<TButton>().First(x => x.Text.Contains(button, caseSensitive) || x.Id.Contains(button, caseSensitive)).RaiseTouched(arg);
 
                 return Task.CompletedTask;
             }
@@ -226,11 +298,15 @@ namespace Zebble.Testing
         /// <summary>
         /// Set a value for the selected input
         /// </summary>        
-        protected void TypeIn(string id, string content)
+        protected void TypeIn(string id, string content, bool shouldSubmitEventExc = false)
         {
             var item = ById<TextInput>(id);
             item.Text(content);
-            Thread.Pool.RunOnNewThread(() => item.UserTextChanged.Raise());
+            Thread.Pool.RunOnNewThread(async () =>
+            {
+                if (shouldSubmitEventExc) await item.UserTextChangeSubmitted.Raise();
+                else await item.UserTextChanged.Raise();
+            });
         }
 
         /// <summary>
@@ -238,5 +314,38 @@ namespace Zebble.Testing
         /// </summary>
         /// <param name="delay">milli-seconds</param>
         protected void Delay(int delay = 1000) => Wait(delay);
+
+        /// <summary>
+        /// Waiting for a view until it has shown
+        /// </summary>
+        /// <param name="view">target view</param>
+        protected void WaitFor(View view)
+        {
+            while (!view.IsShown) Delay(50);
+        }
+
+        /// <summary>
+        /// Scroll the page to the specefic view
+        /// </summary>
+        /// <param name="id">id of the target view</param>
+        protected void ScrollToView(string id)
+        {
+            var allViews = View.Root.AllDescendents();
+            var view = allViews.Where(x => x.Id == id).FirstOrDefault();
+            if (view == null) return;
+
+            var sc = allViews.OfType<ScrollView>().FirstOrDefault();
+            if (sc != null)
+                sc.ScrollToView(view, animate: false);
+        }
+
+        /// <summary>
+        /// Scroll the page to the specefic position
+        /// </summary>
+        /// <param name="yOffset">Y offset</param>
+        protected async void ScrollToY(int yOffset)
+        {
+            await (Nav.CurrentPage as NavBarPage).BodyScroller.ScrollTo(yOffset);
+        }
     }
 }

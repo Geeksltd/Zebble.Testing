@@ -2,9 +2,21 @@
 Automated Testing for Zebble Applications
 
 
-
 ## Set up
+To add UI Testing to your Zebble project, add the `Zebble.Testing` nuget package. Then in `StartUp.cs`, add the following:
+
+```csharp
+protected internal virtual bool IsTestMode() => true; // Set to `false` to run the app in normal mode
+
 ...
+
+public async Task Launch()
+{
+     ....
+     TestEngine.Run();
+}
+
+```
 
 
 ## Running a single test

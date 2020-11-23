@@ -1,5 +1,7 @@
 # Zebble.Testing
-Automated Testing for Zebble Applications
+
+## Automated Testing for Zebble Applications
+Before you start, please first [READ THIS](https://zebble.net/docs/about-automated-ui-testing).
 
 
 ## Set up

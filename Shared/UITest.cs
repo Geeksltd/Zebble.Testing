@@ -316,15 +316,6 @@ namespace Zebble.Testing
         protected void Delay(int delay = 1000) => Wait(delay);
 
         /// <summary>
-        /// Waiting for a view until it has shown
-        /// </summary>
-        /// <param name="view">target view</param>
-        protected void WaitFor(View view)
-        {
-            while (!view.IsShown) Delay(50);
-        }
-
-        /// <summary>
         /// Scroll the page to the specefic view
         /// </summary>
         /// <param name="id">id of the target view</param>
@@ -346,6 +337,80 @@ namespace Zebble.Testing
         protected async void ScrollToY(int yOffset)
         {
             await (Nav.CurrentPage as NavBarPage).BodyScroller.ScrollTo(yOffset);
+        }
+
+        /// <summary>
+        /// Waiting for a view until it has shown
+        /// </summary>
+        /// <param name="view">target view</param>
+        protected void WaitFor(View view) => WaitFor<View>(x => x.IsShown, -1);
+
+        /// <summary>
+        /// Waiting for a view until the condition returns true or timeout reached
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="timeout"></param>
+        protected void WaitFor(Func<View, bool> predicate, int timeout = 5000) => WaitFor<View>(predicate, timeout);
+
+        /// <summary>
+        /// Waiting for a view until the condition returns true or timeout reached
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="timeout"></param>
+        protected void WaitFor<T>(Func<T, bool> predicate, int timeout = 5000) where T : View
+        {
+            int index = 0;
+#if ANDROID
+            Delay(50);
+#else
+            Delay(20);
+#endif
+            AwaitNavigationCompletion();
+
+            while (true)
+            {
+                if (timeout != -1 && index * ((int)Animation.OneFrame.TotalMilliseconds) > timeout) break;
+                if (AllVisible<T>().Where(predicate).Any()) return;
+
+                Wait(Animation.OneFrame);
+
+                index++;
+            }
+
+            if (Debugger.IsAttached) Debugger.Break();
+
+            throw new Exception($"Waiting timeout for: {typeof(T).Name}");
+        }
+
+        static TaskCompletionSource<bool> TapWaiting;
+
+        /// <summary>
+        /// Raising the Tap event of a view and wait for it to complete
+        /// </summary>
+        /// <param name="buttonText"></param>
+        /// <param name="delay"></param>
+        protected Task WaitAndTap(string buttonText, int delay = 200)
+        {
+            return WaitAndTap(FindByText(buttonText),delay);
+        }
+
+        /// <summary>
+        /// Raising the Tap event of a view and wait for it to complete
+        /// </summary>
+        /// <param name="view"></param>
+        /// <param name="delay"></param>
+        protected Task WaitAndTap(View view, int delay = 200)
+        {
+            TapWaiting = new TaskCompletionSource<bool>();
+
+            Delay(delay);
+
+            view.Tapped.Raise(new TouchEventArgs(view, new Point(), 1)).ContinueWith(t =>
+            {
+                if (t.IsCompleted) TapWaiting.TrySetResult(true);
+            }).RunInParallel();
+
+            return TapWaiting.Task;
         }
     }
 }

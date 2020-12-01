@@ -9,7 +9,7 @@ namespace Zebble.Testing
 {
     public class TestEngine
     {
-        internal static void Run()
+        public static void Run()
         {
             TestContext.Activate();
 

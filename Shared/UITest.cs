@@ -283,7 +283,7 @@ namespace Zebble.Testing
         /// Go to the page
         /// </summary>
         /// <typeparam name="T">Page class that inherit from NavBarPage class</typeparam>
-        protected async Task GoTo<T>() where T : NavBarPage
+        protected async Task GoTo<T>() where T : Page
         {
             try
             {
@@ -336,7 +336,7 @@ namespace Zebble.Testing
         /// <param name="yOffset">Y offset</param>
         protected async void ScrollToY(int yOffset)
         {
-            await (Nav.CurrentPage as NavBarPage).BodyScroller.ScrollTo(yOffset);
+            await View.Root.AllDescendents().OfType<ScrollView>().FirstOrDefault(sc => sc.Id == "BodyScroller")?.ScrollTo(yOffset);
         }
 
         /// <summary>
@@ -391,7 +391,7 @@ namespace Zebble.Testing
         /// <param name="delay"></param>
         protected Task WaitAndTap(string buttonText, int delay = 200)
         {
-            return WaitAndTap(FindByText(buttonText),delay);
+            return WaitAndTap(FindByText(buttonText), delay);
         }
 
         /// <summary>

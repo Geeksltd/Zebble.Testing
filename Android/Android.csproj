@@ -51,9 +51,6 @@
     <Reference Include="Zebble.IconButton.Android, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Zebble.IconButton.3.20.273\lib\MonoAndroid10\Zebble.IconButton.Android.dll</HintPath>
     </Reference>
-    <Reference Include="Zebble.NavBarTabs.Android, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Zebble.NavBarTabs.2.6.355\lib\MonoAndroid10\Zebble.NavBarTabs.Android.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

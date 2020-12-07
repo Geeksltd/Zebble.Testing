@@ -120,9 +120,6 @@
     <PackageReference Include="Zebble.IconButton">
       <Version>3.20.273</Version>
     </PackageReference>
-    <PackageReference Include="Zebble.NavBarTabs">
-      <Version>2.6.355</Version>
-    </PackageReference>
   </ItemGroup>
   <Import Project="..\Shared\Shared.projitems" Label="Shared" Condition="Exists('..\Shared\Shared.projitems')" />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

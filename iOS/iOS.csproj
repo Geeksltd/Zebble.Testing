@@ -49,9 +49,6 @@
     <Reference Include="Zebble.iOS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Zebble.4.5.370\lib\Xamarin.iOS10\Zebble.iOS.dll</HintPath>
     </Reference>
-    <Reference Include="Zebble.NavBarTabs.iOS, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Zebble.NavBarTabs.2.6.355\lib\Xamarin.iOS10\Zebble.NavBarTabs.iOS.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

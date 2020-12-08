@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Zebble.Testing
 {
-    public abstract class UITest
+    public abstract class UITest : IBaseUITest
     {
         static Canvas Highlighter;
 
@@ -14,14 +14,37 @@ namespace Zebble.Testing
         // TODO: Build the commands required from 
         // https://github.com/Geeksltd/Pangolin/blob/master/Commands/commands.md
 
-        void Wait(int milliseconds) => Wait(milliseconds.Milliseconds());
-
-        void Wait(TimeSpan time) => Task.Factory.RunSync(() => Task.Delay(time));
-
         public TView[] AllVisible<TView>() where TView : View
         {
             return View.Root.CurrentDescendants().OfType<TView>().Where(v => v.IsVisibleOnScreen()).ToArray();
         }
+
+        public T Find<T>() where T : View => TryToFind<T>(() => AllVisible<T>().FirstOrDefault(), typeof(T).Name);
+
+        public Task Swipe(Direction direction)
+        {
+            try
+            {
+                var arg = new SwipedEventArgs(View.Root, direction, 20);
+                View.Root.RaiseSwipped(arg);
+
+                return Task.CompletedTask;
+            }
+            catch (Exception)
+            {
+                throw new Exception($"Can't swipe to the direction \"{direction}\"");
+            }
+        }
+
+        /// <summary>
+        /// Delay
+        /// </summary>
+        /// <param name="delay">milli-seconds</param>
+        public void Delay(int delay = 1000) => Wait(delay);
+
+        void Wait(int milliseconds) => Wait(milliseconds.Milliseconds());
+
+        void Wait(TimeSpan time) => Task.Factory.RunSync(() => Task.Delay(time));
 
         T TryToFind<T>(Func<T> action, string definition) where T : View
         {
@@ -71,24 +94,6 @@ namespace Zebble.Testing
         protected void Expect(string text, bool caseSensitive = false)
         {
             TryToFind(() => AllVisible<TextControl>().FirstOrDefault(x => x.Text.Contains(text, caseSensitive)), text);
-        }
-
-        protected void SwipeCarousel(Direction direction = Direction.Left, View thisCarousel = null)
-        {
-            var delay = 200;
-
-#if ANDROID
-            delay = 500;
-#endif
-
-            Delay(delay);
-
-            Plugin.Carousel carousel;
-            if (thisCarousel == null) carousel = Find<Plugin.Carousel>();
-            else carousel = thisCarousel as Plugin.Carousel;
-
-            if (direction == Direction.Left) carousel.Next(animate: false);
-            else if (direction == Direction.Right) carousel.Previous(animate: false);
         }
 
         protected void Tap(string buttonText, int delay = 100) => Tap(FindByText(buttonText), delay);
@@ -262,23 +267,6 @@ namespace Zebble.Testing
             }
         }
 
-        protected T Find<T>() where T : View => TryToFind<T>(() => AllVisible<T>().FirstOrDefault(), typeof(T).Name);
-
-        protected Task Swipe(Direction direction)
-        {
-            try
-            {
-                var arg = new SwipedEventArgs(View.Root, direction, 20);
-                View.Root.RaiseSwipped(arg);
-
-                return Task.CompletedTask;
-            }
-            catch (Exception)
-            {
-                throw new Exception($"Can't swipe to the direction \"{direction}\"");
-            }
-        }
-
         /// <summary>
         /// Go to the page
         /// </summary>
@@ -308,12 +296,6 @@ namespace Zebble.Testing
                 else await item.UserTextChanged.Raise();
             });
         }
-
-        /// <summary>
-        /// Delay
-        /// </summary>
-        /// <param name="delay">milli-seconds</param>
-        protected void Delay(int delay = 1000) => Wait(delay);
 
         /// <summary>
         /// Scroll the page to the specefic view

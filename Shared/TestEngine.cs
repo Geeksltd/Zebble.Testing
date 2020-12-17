@@ -41,11 +41,47 @@ namespace Zebble.Testing
         {
             var types = UIRuntime.GetEntryAssembly().GetTypes().Where(t => t.InhritsFrom(typeof(UITest)));
 
-            if (types.Any(t => t.Defines<UnderDevelopment>())) return types.Where(t => t.Defines<UnderDevelopment>());
-            else return types;
+            if (types.Any(t => t.Defines<UnderDevelopment>()))
+            {
+                return types.Where(t => t.Defines<UnderDevelopment>());
+            }
+
+            if (types.Any(t => t.Defines<TestCase>()))
+            {
+                var orderedTypes = types.Where(t => t.Defines<TestCase>())
+                    .Select(t => new TypeWithAttribute<TestCase>(t.GetCustomAttribute<TestCase>(), t))
+                    .OrderBy(x => x.Attribute.Order).Select(x => x.CurrentType).ToList();
+
+                orderedTypes.AddRange(types.Except(orderedTypes));
+
+                return orderedTypes;
+            }
+
+            return types;
+        }
+    }
+
+    class TypeWithAttribute<T>
+    {
+        public T Attribute { get; set; }
+
+        public Type CurrentType { get; set; }
+
+        public TypeWithAttribute(T attribute, Type type)
+        {
+            Attribute = attribute;
+            CurrentType = type;
+
+            if (Attribute == null) Attribute = Activator.CreateInstance<T>();
         }
     }
 
     [AttributeUsage(AttributeTargets.Class)]
     public class UnderDevelopment : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class TestCase : Attribute
+    {
+        public int Order { get; set; }
+    }
 }

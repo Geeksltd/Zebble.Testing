@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Zebble.Testing</id>
-    <version>1.2.104</version>
+    <version>1.2.105</version>
     <title>Testing for Zebble (Xamarin)</title>
     <projectUrl>https://github.com/Geeksltd/Zebble.Testing</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/Geeksltd/Zebble.Testing/master/Shared/NuGet/Icon.png</iconUrl>

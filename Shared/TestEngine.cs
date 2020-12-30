@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Zebble.Device;
+using Olive;
+using Log = Zebble.Device.Log;
 
 namespace Zebble.Testing
 {

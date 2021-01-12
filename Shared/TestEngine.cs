@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Olive;
-using Log = Zebble.Device.Log;
 
 namespace Zebble.Testing
 {
@@ -23,7 +22,7 @@ namespace Zebble.Testing
                         var testCase = Activator.CreateInstance(test) as UITest;
                         await testCase.Run();
 
-                        Log.Success($"Test \"{ test.GetType().Name }\" ran successfully");
+                        Log.For<TestEngine>().Debug($"Test \"{ test.GetType().Name }\" ran successfully");
                         await Task.Delay(1.Seconds());
                     }
                     catch (Exception ex)

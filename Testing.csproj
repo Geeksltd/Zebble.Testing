@@ -7,7 +7,7 @@
     <RootNamespace>Zebble</RootNamespace>
     <PackageId>Zebble.Testing</PackageId>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Version>1.2.109.0</Version>
+    <Version>1.2.110.0</Version>
     <PackOnBuild>true</PackOnBuild>
     <NeutralLanguage>en</NeutralLanguage>
     <LangVersion>default</LangVersion>

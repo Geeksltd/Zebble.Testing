@@ -39,7 +39,7 @@ namespace Zebble.Testing
 
         static IEnumerable<Type> GetTests()
         {
-            var types = UIRuntime.GetEntryAssembly().GetTypes().Where(t => t.InhritsFrom(typeof(UITest)));
+            var types = UIRuntime.AppAssembly.GetTypes().Where(t => t.InhritsFrom(typeof(UITest)));
 
             if (types.Any(t => t.Defines<UnderDevelopment>()))
             {

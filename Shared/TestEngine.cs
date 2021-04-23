@@ -37,6 +37,22 @@ namespace Zebble.Testing
             });
         }
 
+        public static void Run<T>() where T : UITest
+        {
+            TestContext.Activate();
+
+            var test = GetTests().FirstOrDefault(x => x == typeof(T));
+
+            if (test == null)
+                throw new Exception($"Testcase with type {typeof(T)} not found.");
+
+            Thread.Pool.RunOnNewThread(async () =>
+            {
+                var testCase = Activator.CreateInstance(test) as UITest;
+                await testCase.Run();
+            });
+        }
+
         static IEnumerable<Type> GetTests()
         {
             var types = UIRuntime.AppAssembly.GetTypes().Where(t => t.InhritsFrom(typeof(UITest)));

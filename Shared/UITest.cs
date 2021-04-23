@@ -291,6 +291,7 @@ namespace Zebble.Testing
         {
             var item = ById<TextInput>(id);
             item.Text(content);
+            item.UserTextChanged.Raise();
             Thread.Pool.RunOnNewThread(async () =>
             {
                 if (shouldSubmitEventExc) await item.UserTextChangeSubmitted.Raise();

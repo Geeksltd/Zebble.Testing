@@ -6,7 +6,7 @@
     <RootNamespace>Zebble</RootNamespace>
     <PackageId>Zebble.Testing</PackageId>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Version>1.2.112.0</Version>
+    <Version>1.2.114.0</Version>
     <PackOnBuild>true</PackOnBuild>
     <NeutralLanguage>en</NeutralLanguage>
     <DefineConstants>$(DefineConstants)</DefineConstants>
@@ -65,7 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Reflection" Version="4.3.0" />
-    <PackageReference Include="Zebble" Version="4.5.500" />
+    <PackageReference Include="Zebble" Version="4.5.517" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Android\" />

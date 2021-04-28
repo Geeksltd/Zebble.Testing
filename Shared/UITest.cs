@@ -290,12 +290,10 @@ namespace Zebble.Testing
         protected void TypeIn(string id, string content, bool shouldSubmitEventExc = false)
         {
             var item = ById<TextInput>(id);
-            item.Text(content);
-            Thread.Pool.RunOnNewThread(async () =>
-            {
-                if (shouldSubmitEventExc) await item.UserTextChangeSubmitted.Raise();
-                else await item.UserTextChanged.Raise();
-            });
+            item.Value.SetByInput(content);
+
+            if (shouldSubmitEventExc) 
+                item.UserTextChangeSubmitted.Raise();
         }
 
         /// <summary>

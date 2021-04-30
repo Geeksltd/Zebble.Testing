@@ -290,6 +290,7 @@ namespace Zebble.Testing
         protected void TypeIn(string id, string content, bool shouldSubmitEventExc = false)
         {
             var item = ById<TextInput>(id);
+            item.Text(content);
             item.Value.SetByInput(content);
 
             if (shouldSubmitEventExc) 

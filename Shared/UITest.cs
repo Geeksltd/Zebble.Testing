@@ -394,5 +394,25 @@ namespace Zebble.Testing
 
             return TapWaiting.Task;
         }
+
+        protected View ByText(string text)
+        {
+            var result = AllVisible<TextView>().FirstOrDefault(x => x.Text == text);
+
+            if (result == null)
+                throw new Exception($"{text} not found.");
+
+            return result;
+        }
+
+        protected T ByType<T>() where T : View
+        {
+            var result = AllVisible<T>().FirstOrDefault();
+
+            if (result == null)
+                throw new Exception($"Element of type {typeof(T).Name} not found.");
+
+            return result;
+        }
     }
 }
